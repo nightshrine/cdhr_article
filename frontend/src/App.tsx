@@ -1,22 +1,35 @@
 import { Todo } from '@/definitions/Todo';
 import { TodoService } from '@/services/TodoService';
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import './App.css';
 
 function App() {
-    const [isFirstFetch, setIsFirstFetch] = useState(true);
+    const [isLoaded, setIsLoaded] = useState(false);
     const [inputTodo, setInputTodo] = useState('');
     const [todos, setTodos] = useState<Todo[]>([]);
 
-    useEffect(() => {
-        if (!isFirstFetch) return;
-        const fetchTodos = async () => {
-            const todos = await TodoService.getTodos();
-            setTodos(todos);
-            setIsFirstFetch(false);
-        };
-        fetchTodos();
-    }, [isFirstFetch]);
+    const todosQueryResult = useQuery({
+        queryKey: ['initTodos'],
+        queryFn: TodoService.getTodos,
+    });
+
+    if (todosQueryResult.isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (todosQueryResult.isError) {
+        return <div>Error</div>;
+    }
+
+    if (!todosQueryResult.data) {
+        return <div>No data</div>;
+    }
+
+    if (!isLoaded) {
+        setTodos(todosQueryResult.data);
+        setIsLoaded(true);
+    }
 
     const addTodo = async () => {
         await TodoService.addTodo({
