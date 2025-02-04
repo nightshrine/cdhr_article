@@ -29,9 +29,14 @@ function App() {
     };
 
     const toggleTodo = async (id: number) => {
+        const newTodos = todos.map((todo) => {
+            if (todo.id === id) {
+                return { ...todo, done: !todo.done };
+            }
+            return todo;
+        });
+        setTodos(newTodos);
         await TodoService.toggleTodo(id);
-        const todos = await TodoService.getTodos();
-        setTodos(todos);
     };
 
     const deleteTodo = async (id: number) => {
